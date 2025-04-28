@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Taxi Rental Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { margin: 20px; background-color: #f8f9fa; }
+        h1 { text-align: center; margin-bottom: 30px; }
+        .card { margin-bottom: 30px; }
+        #spinner {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+        }
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 20px;
+            transform: translateX(-50%);
+            font-size: 17px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🚕 Taxi Rental Management System 🚕</h1>
+
+<div class="container">
+    <div id="spinner" class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+
+    <div id="toast"></div>
+
+    <!-- Manager Section -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">Manager Actions</div>
+        <div class="card-body">
+            <h5>Register Manager</h5>
+            <input type="text" id="manager_ssn" class="form-control" placeholder="SSN">
+            <input type="text" id="manager_name" class="form-control" placeholder="Name">
+            <input type="email" id="manager_email" class="form-control" placeholder="Email">
+            <button class="btn btn-success mt-2" onclick="validateAndCall(
+                ['manager_ssn', 'manager_name', 'manager_email'], 
+                `${BASE_URL}/manager/register`, 
+                'POST', 
+                { ssn: manager_ssn.value, name: manager_name.value, email: manager_email.value }, 
+                'result'
+            )">Register Manager</button>
+
+            <hr>
+
+            <h5>Manager Login</h5>
+            <input type="text" id="manager_login_ssn" class="form-control" placeholder="SSN">
+            <button class="btn btn-primary mt-2" onclick="validateAndCall(['manager_login_ssn'], `${BASE_URL}/manager/login`, 'POST', {ssn: manager_login_ssn.value}, 'result')">
+              Login Manager</button>
+
+            <hr>
+
+            <h5>Car Management</h5>
+            <input type="text" id="car_brand" class="form-control" placeholder="Insert Car Brand">
+            <button class="btn btn-success mt-2" 
+    onclick="validateAndCall(['car_brand'], `${BASE_URL}/manager/insert_car`, 'POST', {brand: car_brand.value}, 'result')">
+    Insert Car
+</button>
+
+            <input type="text" id="remove_car_brand" class="form-control mt-2" placeholder="Remove Car Brand">
+            <button class="btn btn-danger mt-2" 
+    onclick="validateAndCall(['remove_car_brand'], `${BASE_URL}/manager/remove_car`, 'POST', {brand: remove_car_brand.value}, 'result')">
+    Remove Car
+</button>
+            <hr>
+
+            <h5>Driver Management</h5>
+            <input type="text" id="driver_name" class="form-control" placeholder="Driver Name">
+            <input type="text" id="driver_address" class="form-control" placeholder="Driver Address">
+            <button class="btn btn-success mt-2" 
+    onclick="validateAndCall(['driver_name', 'driver_address'], `${BASE_URL}/manager/insert_driver`, 'POST', {name: driver_name.value, address: driver_address.value}, 'result')">
+    Insert Driver
+</button>
+            <input type="text" id="remove_driver_name" class="form-control mt-2" placeholder="Driver Name to Remove">
+            <button class="btn btn-danger mt-2" 
+    onclick="validateAndCall(['remove_driver_name'], `${BASE_URL}/manager/remove_driver`, 'POST', {name: remove_driver_name.value}, 'result')">
+    Remove Driver
+</button>
+
+            <hr>
+
+            <h5>Reports</h5>
+            <input type="number" id="top_k" class="form-control" placeholder="Top K Clients">
+            <button class="btn btn-primary mt-2" 
+    onclick="validateAndCall(['top_k'], `${BASE_URL}/manager/top_k_clients`, 'POST', {k: top_k.value}, 'result')">
+    Top-K Clients
+</button>
+
+<button class="btn btn-primary mt-2" 
+onclick="apiCall(`${BASE_URL}/manager/cars_rent_count`, 'GET', null, 'result')">
+Car Model Usage
+</button>
+
+<button class="btn btn-primary mt-2" 
+onclick="apiCall(`${BASE_URL}/manager/driver_stats`, 'GET', null, 'result')">
+Driver Statistics
+</button>
+
+            <input type="text" id="city1" class="form-control mt-2" placeholder="City 1">
+            <input type="text" id="city2" class="form-control" placeholder="City 2">
+            <button class="btn btn-primary mt-2" 
+    onclick="validateAndCall(['city1', 'city2'], `${BASE_URL}/manager/clients_by_city`, 'POST', {city1: city1.value, city2: city2.value}, 'result')">
+    Clients by City
+</button>
+        </div>
+    </div>
+
+    <!-- Driver Section -->
+    <div class="card">
+        <div class="card-header bg-success text-white">Driver Actions</div>
+        <div class="card-body">
+            <h5>Driver Login</h5>
+            <input type="text" id="driver_login_name" class="form-control" placeholder="Driver Name">
+            <button class="btn btn-success mt-2" 
+    onclick="validateAndCall(['driver_login_name'], `${BASE_URL}/driver/login`, 'POST', {name: driver_login_name.value}, 'result')">
+    Login Driver
+</button>
+
+            <hr>
+
+            <h5>Update Address</h5>
+            <input type="text" id="driver_update_name" class="form-control" placeholder="Driver Name">
+            <input type="text" id="driver_new_address" class="form-control" placeholder="New Address">
+            <button class="btn btn-warning mt-2" 
+    onclick="validateAndCall(['driver_update_name', 'driver_new_address'], `${BASE_URL}/driver/update_address`, 'POST', {name: driver_update_name.value, new_address: driver_new_address.value}, 'result')">
+    Update Address
+</button>
+
+            <hr>
+
+            <h5>Car Models (for Driver)</h5>
+            <button class="btn btn-primary" 
+    onclick="apiCall(`${BASE_URL}/driver/list_models`, 'GET', null, 'result')">
+    List Car Models
+</button>
+
+            <input type="number" id="driver_id" class="form-control mt-2" placeholder="Driver ID">
+            <input type="number" id="model_id" class="form-control" placeholder="Model ID">
+            <button class="btn btn-success mt-2" 
+    onclick="validateAndCall(['driver_id', 'model_id'], `${BASE_URL}/driver/declare_model`, 'POST', {driver_id: driver_id.value, model_id: model_id.value}, 'result')">
+    Declare Model
+</button>
+        </div>
+    </div>
+
+    <!-- Client Section -->
+    <div class="card">
+        <div class="card-header bg-warning text-dark">Client Actions</div>
+        <div class="card-body">
+            <h5>Client Registration</h5>
+            <input type="text" id="client_name" class="form-control" placeholder="Name">
+            <input type="email" id="client_email" class="form-control" placeholder="Email">
+            <textarea id="client_addresses" class="form-control" placeholder='Addresses (city, street, etc,.)'></textarea>
+            <textarea id="client_cards" class="form-control" placeholder='Credit Cards (card_number, payment_address and city)'></textarea>
+            <button class="btn btn-success mt-2" 
+    onclick="validateAndCall(['client_name', 'client_email', 'client_addresses', 'client_cards'], `${BASE_URL}/client/register`, 'POST', {name: client_name.value, email: client_email.value, addresses: JSON.parse(client_addresses.value), credit_cards: JSON.parse(client_cards.value)}, 'result')">
+    Register Client
+</button>
+
+            <hr>
+
+            <h5>Client Login</h5>
+            <input type="email" id="client_login_email" class="form-control" placeholder="Email">
+            <button class="btn btn-primary mt-2" 
+    onclick="validateAndCall(['client_login_email'], `${BASE_URL}/client/login`, 'POST', {email: client_login_email.value}, 'result')">
+    Login Client
+</button>
+
+            <hr>
+
+            <h5>Rent Actions</h5>
+            <input type="date" id="available_date" class="form-control" placeholder="Rent Date">
+            <button class="btn btn-info mt-2" 
+    onclick="validateAndCall(['available_date'], `${BASE_URL}/client/available_cars`, 'POST', {date: available_date.value}, 'result')">
+    Available Cars
+</button>
+
+            <input type="number" id="rent_client_id" class="form-control mt-2" placeholder="Client ID">
+            <input type="number" id="rent_model_id" class="form-control" placeholder="Model ID">
+            <input type="date" id="rent_date" class="form-control" placeholder="Rent Date">
+            <button class="btn btn-success mt-2" 
+    onclick="validateAndCall(['rent_client_id', 'rent_model_id', 'rent_date'], `${BASE_URL}/client/book_rent`, 'POST', {client_id: rent_client_id.value, model_id: rent_model_id.value, date: rent_date.value}, 'result')">
+    Book Rent
+</button>
+
+            <input type="number" id="view_rent_client_id" class="form-control mt-2" placeholder="Client ID">
+            <button class="btn btn-info mt-2" 
+    onclick="validateAndCall(['view_rent_client_id'], `${BASE_URL}/client/my_rents`, 'POST', {client_id: view_rent_client_id.value}, 'result')">
+    View My Rents
+</button>
+
+            <hr>
+
+            <h5>Leave Review</h5>
+            <input type="number" id="review_client_id" class="form-control" placeholder="Client ID">
+            <input type="number" id="review_driver_id" class="form-control" placeholder="Driver ID">
+            <input type="number" id="review_rating" class="form-control" placeholder="Rating (1-5)">
+            <textarea id="review_comment" class="form-control" placeholder="Comment (optional)"></textarea>
+            <button class="btn btn-warning mt-2" 
+    onclick="validateAndCall(['review_client_id', 'review_driver_id', 'review_rating'], `${BASE_URL}/client/leave_review`, 'POST', {client_id: review_client_id.value, driver_id: review_driver_id.value, rating: review_rating.value, comment: review_comment.value}, 'result')">
+    Submit Review
+</button>
+        </div>
+    </div>
+
+    <!-- Result Section -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">Result</div>
+        <div class="card-body">
+            <pre id="result" style="white-space: pre-wrap;"></pre>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const BASE_URL = 'http://localhost:5050';
+
+function validateAndCall(inputs, url, method, bodyData, resultId) {
+    for (let id of inputs) {
+        const value = document.getElementById(id).value.trim();
+        if (value === '') {
+            showToast('❌ Please fill all fields.');
+            return; // stop here
+        }
+    }
+    apiCall(url, method, bodyData, resultId); // all good, proceed
+}
+
+async function apiCall(url, method, bodyData, resultId) {
+    try {
+        const spinner = document.getElementById('spinner');
+        if (spinner) spinner.style.display = 'block';
+
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: method !== 'GET' ? JSON.stringify(bodyData) : undefined
+        });
+
+        const data = await res.json();
+
+        if (spinner) spinner.style.display = 'none';
+
+        const resultElement = document.getElementById(resultId);
+        if (resultElement) resultElement.innerText = JSON.stringify(data, null, 2);
+
+        if (res.ok) {
+            showToast('✅ ' + (data.message || 'Success'));
+        } else {
+            showToast('❌ ' + (data.error || 'Error occurred'));
+        }
+    } catch (error) {
+        const spinner = document.getElementById('spinner');
+        if (spinner) spinner.style.display = 'none';
+        showToast('❌ Error: ' + error.toString());
+    }
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.innerText = message;
+    toast.style.visibility = 'visible';
+    setTimeout(() => {
+        toast.style.visibility = 'hidden';
+    }, 3000);
+}
+</script>
+
+</body>
+</html>
